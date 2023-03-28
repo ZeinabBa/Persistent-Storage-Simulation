@@ -4,7 +4,7 @@ import time
 import os
 import logging
 # import threading
-
+from random import randint
 #g_rdsMutex = Lock()
 
 #times for tasks given in milliseconds
@@ -13,8 +13,8 @@ Rapp = 5
 Dsc = 10 # deployment
 Fsc = 5
 Wsc = 5
-Rl = 50
-Sl = 50
+Rl = randint(30,49)
+Sl = randint(30,49)
 
 # class acts similar to an enum
 # this gives the mode or state of the node wrt failures
@@ -62,6 +62,9 @@ class App:
         self.nodeRds = []
         self.applicationFailed = False # designates if an application has failed. 
 
+
+    def getAppID(self):
+        return self.appID
 
     def attachToNode(self, nodeID):
         self.nodeID = nodeID

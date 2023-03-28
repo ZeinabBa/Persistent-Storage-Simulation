@@ -6,19 +6,20 @@ from node import Node, App
 import logging
 import sys
 import json
-
+import random
+from random import randint
 #times for tasks given in milliseconds
 Wapp = 5 # 5 milliseconds
 Rapp = 5
-Dsc = 100 # deployment
+Dsc = 10 # deployment
 Fsc = 5
 Wsc = 5
-Rl = 100
-Sl = 100
+Rl = randint(30,49)
+Sl = randint(30,49)
 
 class Cluster(object):
 	""" Manages the Nodes of a Cluster"""
-	def __init__(self,clusterDataFile):
+	def __init__(self,clusterDataFile, numberOfRandomFailuresToAdd):
 		#self._nodeID = nodeId
 		self.nodeSet = []
 		self.appSet = []
@@ -29,8 +30,14 @@ class Cluster(object):
 		self.scFailureCount = 0
 		self.nodeFailureCount = 0
 		self.leaderFailureCount = 0
+		self.NumberOfRandomFailuresToAdd = numberOfRandomFailuresToAdd; # The total number of random failures to add
+		self.AddRandomFailures = False
+		if self.NumberOfRandomFailuresToAdd > 0:
+			self.AddRandomFailures = True
+		self.SelectedAppsWhereFailuresOccur = set()
 		#self._readInNodeData(clusterDataFile)	
-		self._readInData(clusterDataFile)		
+		self._readInData(clusterDataFile)
+		
 
 	def _readInData(self,clusterDataFile):
 		file_object = 0
@@ -66,7 +73,7 @@ class Cluster(object):
 			if isLeader:
 				n.setLeader(nodeId)
 
-			if node["Failure"] == True:
+			if node["Failure"] == True and self.AddRandomFailures == False:
 				item = node["Item"]
 				onIteration = node["Iteration"]
 				stage = node["Stage"]
@@ -106,13 +113,29 @@ class Cluster(object):
 			execution = app["ExecutionTime"]
 			numberOfIterations = app["NumberOfIterations"]
 			application = App(cpuSpeed, ram, storage,deployment, execution, numberOfIterations, appID)
-			if app["Failure"] == True:
+
+			if app["Failure"] == True and self.AddRandomFailures == False:
 				onIteration = app["OnIteration"]
 				stage = app["Stage"]
 				application.setAppToFail(stage, onIteration)
 				self.appFailureCount += 1
 			self.appSet.append(application)
 			appID += 1
+
+		if self.NumberOfRandomFailuresToAdd > 0:
+			self.randomlySelectAppsOfFailure(appID)			
+
+	# these apps designate node sites where failures will occur
+	# the failure could be a Node, an SC or an App
+	def randomlySelectAppsOfFailure(self, numberOfApps):
+		maxFailureCount = numberOfApps/10 + 1
+		if self.NumberOfRandomFailuresToAdd > maxFailureCount:
+			self.NumberOfRandomFailuresToAdd = maxFailureCount
+
+		while len(self.SelectedAppsWhereFailuresOccur) < self.NumberOfRandomFailuresToAdd:
+			result = random.randrange(0,numberOfApps,1)
+			self.SelectedAppsWhereFailuresOccur.add(result) #add to the set of unique IDs
+		
 		
 	 # give each app a node if it fits
 	def _fitAppsIntoCluster(self):
@@ -121,6 +144,8 @@ class Cluster(object):
 			for node in self.nodeSet:
 				if node.attachAppToNode(self.appSet[index],index):
 					numberOfAttachedApps += 1
+					if self.AddRandomFailures == True:
+						self._addRandomFailure(node.getNodeID(),index)
 					break
 
 	def _attachAppSetToNodes(self):
@@ -128,6 +153,31 @@ class Cluster(object):
 			# attaches the application set and creates the RDS for each node
 			self.nodeSet[i].attachAppSet(self.appSet)
 
+	def _addRandomFailure(self, nodeID, appID):
+		# add the failure if it's a preselected application
+		if appID in self.SelectedAppsWhereFailuresOccur:		
+			#65% chance of App failure, 25% chance of SC failure and 10% chance of Node failue
+			result = random.randrange(0,100,1)
+			stage = random.randrange(1,6)
+			iteration = random.randrange(1,self.appSet[appID].finalIteration +1)
+
+			if result < 65: # means App failure
+				self.appSet[appID].setAppToFail(stage,iteration)
+				self.appFailureCount += 1
+				logging.info(f" App = {appID} is set to fail on node= {nodeID}, stage = {stage}, interation = {iteration}")
+				return 1 
+			elif result < 90: # means SC failure
+				if Node.scLeaderNode == nodeID:
+					self.leaderFailureCount += 1
+				self.scFailureCount += 1
+				self.nodeSet[nodeID].setSCToFail(stage,iteration)
+				logging.info(f" SC is set to fail on node= {nodeID}, stage = {stage}, interation = {iteration}")
+			else:  # means Node failure
+				if Node.scLeaderNode == nodeID:
+					self.leaderFailureCount += 1
+				self.nodeFailureCount += 1
+				self.nodeSet[nodeID].setNodeToFail(stage,iteration)	
+				logging.info(f" Node is set to fail, node= {nodeID}, stage = {stage}, interation = {iteration}")
 
 	def _readInNodeData(self,nodeDataFile):
 		# The data file should have the format:
@@ -237,7 +287,8 @@ class Cluster(object):
 		scFailureCount = 0
 		nodeFailureCount = 0
 		leaderFailureCount = 0
-		
+		syncTimes = []
+		syncTimeOnePass = 0
 		while iterate == True:
 			stage = 0
 			if iteration > 1:
@@ -284,8 +335,12 @@ class Cluster(object):
 
 				stage += 1
 
+			syncTimeOnePass += deltaTime[2] + deltaTime[3] + deltaTime[4] + deltaTime[5]
 			if syncMeasured:
+				syncTimes.append(syncTimeOnePass)
+				syncTimeOnePass = 0
 				syncCount += 1
+			
 			syncTimeTotal += deltaTime[2] + deltaTime[3] + deltaTime[4] + deltaTime[5]
 			#syncTimeTotal += syncTimeEnd - syncTimeStart
 			iteration += 1
@@ -300,24 +355,29 @@ class Cluster(object):
 
 		logging.info(f"\n Total Iterations = {iteration-1}")
 	
-		logging.info(f" Total Synchronization Delay = {syncTimeTotal} seconds")
+		logging.info(f" Total Synchronization Delay = {syncTimeTotal:.3f} seconds")
 		logging.info(f" Number of times the system synchronized = {syncCount}")
 		averageSyncTime = syncTimeTotal/syncCount
-		logging.info(f" Average Synchronization Delay = {averageSyncTime} seconds")
-		logging.info(f" Total Operation Time = {totalOperationTime}")
+		logging.info(f" Average Synchronization Delay = {averageSyncTime:.3f} seconds")
+		logging.info(f" Total Operation Time = {totalOperationTime:.3f}")
+
+		count = 1
+		for st in syncTimes:
+			logging.info(f"sync time {count} = {st:.3f}")
+			count += 1
 
 		if self.appFailureCount > 0:
 			mttf = totalOperationTime / self.appFailureCount
-			logging.info(f" MTTF of applications = {mttf}")
+			logging.info(f" MTTF of applications = {mttf:.3f}")
 		if self.scFailureCount > 0:
 			mttf = totalOperationTime / self.scFailureCount
-			logging.info(f" MTTF of SCs = {mttf}")
+			logging.info(f" MTTF of SCs = {mttf:.3f}")
 		if self.nodeFailureCount > 0:
 			mttf = totalOperationTime / self.nodeFailureCount
-			logging.info(f" MTTF of Nodes = {mttf}")
+			logging.info(f" MTTF of Nodes = {mttf:.3f}")
 		if self.leaderFailureCount > 0:
 			mttf = totalOperationTime / self.leaderFailureCount
-			logging.info(f" MTTF of Leader = {mttf}")
+			logging.info(f" MTTF of Leader = {mttf:.3f}")
 
 		# empty nodes:
 		logging.info(f"The following Nodes Are Empty:")
@@ -329,30 +389,55 @@ class Cluster(object):
 		if count == 0:
 			logging.info(f" No nodes are empty")
 
+def programUse():
+	print("\n Program use:\n python cluster.py dataInputFile [optional: number of random failures]")
+	print("\n For random failures you get a maximum of 1 random failure for 1 to 10 apps. You get 2 for 11 to 20, etc.")
+
 def main():
+	numberOfRandomFailuresToAdd = 0
 	num = len(sys.argv)
 
-	if num != 2:
-		print(" Program use:\n python cluster.py dataInputFile")
+	if num == 3: # random failures included
+		try:
+			numberOfRandomFailuresToAdd = int(sys.argv[2])
+		except Exception as var:
+			print("Error: must enter an integer for random number.")
+			programUse()
+			exit(0)
+
+	elif num != 2:
+		programUse()
 		return 0
-
-
+	
 	#logging.basicConfig(filename='clusterLog2.txt',level=logging.DEBUG)
 	#logging.basicConfig(level=logging.DEBUG)
 	#logging.basicConfig(level=logging.INFO)
 
-	logging.basicConfig(filename='clusterLog.txt',level=logging.INFO)
+	logging.basicConfig(filename='SysLog.txt',level=logging.INFO)
 	logging.info("\n\n\n\n\n  ***** START NEW TEST ***** \n")
 	print("\n\n\n\n\n  ***** START NEW TEST ***** \n")
 		
+	if numberOfRandomFailuresToAdd > 0:
+		logging.info(f"  Number of Random Failures = {numberOfRandomFailuresToAdd}\n")		
+		print(f"   Number of Random Failures = {numberOfRandomFailuresToAdd}\n")
 	#cluster = Cluster("ClusterData10N10A1F.txt")
-	#cluster = Cluster("ClusterData100N100A.txt")
+	#cluster = Cluster("ClusterData100N100A.txt",10)
 	
-	cluster = Cluster(sys.argv[1])
+	
+	cluster = Cluster(sys.argv[1],numberOfRandomFailuresToAdd)
 	cluster.runTest()
 	return 0
 	
 
+def test():
+	#result = random.randrange(0,100,1)
+	
+	for i in range(10):
+		result = random.randrange(0,3)
+		print(" random result = ",result)
+	None
+
 if __name__ == '__main__':
+	#test()
 	sys.exit(main())
 
