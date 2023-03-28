@@ -30,7 +30,7 @@ The simulation files provided in this repository allows you to perform the follo
 
 
 # Instructions
-To use the simulation files, please follow these instructions: <span style="color:red">This text will be red</span>
+To use the simulation files, please follow these instructions: $${\color{red}Red}$$
 
 1- Clone/download the repository
 
