@@ -30,11 +30,11 @@ The simulation files provided in this repository allows you to perform the follo
 
 
 # Instructions
-To use the simulation files, please follow these instructions: $${\color{red}Red}$$
+To use the simulation files, please follow these instructions: 
 
 1- Clone/download the repository
 
-2- <span style="color:blue">Make sure all files are located in one folder</span>
+2- $${\color{red}Make sure all files are located in one folder}$$
 
 3- If using windows, add the folder address to PATH
 
