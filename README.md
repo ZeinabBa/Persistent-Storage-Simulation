@@ -34,7 +34,7 @@ To use the simulation files, please follow these instructions:
 
 1- Clone/download the repository
 
-2- $${\color{red}Make sure all files are located in one folder}$$
+2- $${\color{red}Make \space sure \space all \space files \space are \space located \space in \space one \space folder}$$
 
 3- If using windows, add the folder address to PATH
 
