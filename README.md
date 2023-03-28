@@ -34,13 +34,13 @@ To use the simulation files, please follow these instructions:
 
 1- Clone/download the repository
 
-2- $${\color{red}Make \space sure \space all \space files \space are \space located \space in \space one \space folder}$$
+2- Make sure all files are located in one folder
 
 3- If using windows, add the folder address to PATH
 
 4- Open a CLI (PowerShell recommended for windows OS)
 
-5- Run the command  `python cluster.py input_file output_file percentage_of_failure`
+5- Run the command  `python cluster.py input_file output_file percentage_of_failure` $${\color{red}Red}$$
 Replace `input_file` with the name of the input file you want to use, `output_file` with the desired name for the output log file, and `percentage_of_failure` with the desired percentage of nodes to simulate as failed (e.g. 10 for 10%).
   - NOTE: Please note that if output file name is not specified either in command line or in the main code then the new results will be added (not overwritten) to the results of the previous experiment.
 
