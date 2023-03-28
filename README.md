@@ -40,7 +40,7 @@ To use the simulation files, please follow these instructions:
 
 4- Open a CLI (PowerShell recommended for windows OS)
 
-5- Run the command  `python cluster.py input_file output_file percentage_of_failure` $${\color{red}Red}$$
+5- Run the command  `python cluster.py input_file output_file percentage_of_failure` $${\color{red}input_file \space must \space be \space located \space in \space the \space same \space folder \space as \space the \space cluster.py \space file}$$
 Replace `input_file` with the name of the input file you want to use, `output_file` with the desired name for the output log file, and `percentage_of_failure` with the desired percentage of nodes to simulate as failed (e.g. 10 for 10%).
   - NOTE: Please note that if output file name is not specified either in command line or in the main code then the new results will be added (not overwritten) to the results of the previous experiment.
 
