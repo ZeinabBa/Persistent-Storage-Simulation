@@ -93,7 +93,9 @@ Here is a screenshot of the JSON creator program and its interactive pannel:
 
 ![json_creator](https://github.com/ZeinabBa/Persistent-Storage-Simulation/blob/main/Pictures/JSON%20for%20inputfile%20creator.jpg?raw=true)
 
-When the input file is saved run the command given in StepX. Here is a screenshot of running program and when it's run:
+When the input file is saved run the command given in Step 5 (Instruction Section in this READ ME).
+* NOTE: After adding Nodes you need to add Applications as the interactive pannel requests you.
+Here is a screenshot of running program and when it's run:
 
 ![CLI_and_Program_RUN](https://github.com/ZeinabBa/Persistent-Storage-Simulation/blob/main/Pictures/Program%20Run.jpg?raw=true)
 
