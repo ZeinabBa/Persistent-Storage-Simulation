@@ -87,3 +87,15 @@ The simulation generates log files that contain the result of each operation. He
 
 - Failure details are also included 
   - The details are about failed entities, what stage, what component and if it is SC and App then what Node they where deployed on and if it is an application then which itteration the failure has occured.
+
+# Examples with Images
+Here is a screenshot of the JSON creator program and its interactive pannel:
+![json_creator](image_url)
+
+When the input file is saved run the command given in StepX. Here is a screenshot of running program and when it's run:
+
+![CLI_and_Program_RUN](image_url)
+
+* NOTE: It is very improtant to add the files extentions if they have one. For instance if you save the JSON file as .txt then you need to enter the complete file name including its extention (.txt in this case).
+
+Example fo input and output files are given in the folder named "Sample Test Codes and Log Files" in this repository. Files their names include the word "test" are input files and files their names inlcude the word"log" are output files.
