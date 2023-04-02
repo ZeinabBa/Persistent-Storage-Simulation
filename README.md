@@ -100,5 +100,6 @@ Here is a screenshot of running program and when it's run:
 ![CLI_and_Program_RUN](https://github.com/ZeinabBa/Persistent-Storage-Simulation/blob/main/Pictures/Program%20Run.jpg?raw=true)
 
 * NOTE: It is very improtant to add the files extentions if they have one. For instance if you save the JSON file as .txt then you need to enter the complete file name including its extention (.txt in this case).
+* NOTE: As shown in this image output file is not specified, therefore, it writes in the deafult file: Syslog.txt (in the same folder). Details are mentioned in Step number 5.
 
 Example fo input and output files are given in the folder named "Sample Test Codes and Log Files" in this repository. Files their names include the word "test" are input files and files their names inlcude the word"log" are output files.
