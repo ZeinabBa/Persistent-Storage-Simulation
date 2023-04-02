@@ -90,7 +90,7 @@ The simulation generates log files that contain the result of each operation. He
 
 # Examples with Images
 Here is a screenshot of the JSON creator program and its interactive pannel:
-![json_creator](image_url)
+![json_creator](https://github.com/ZeinabBa/Persistent-Storage-Simulation/blob/main/Pictures/JSON%20for%20inputfile%20creator.jpg?raw=true)
 
 When the input file is saved run the command given in StepX. Here is a screenshot of running program and when it's run:
 
